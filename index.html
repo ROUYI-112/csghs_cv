@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>公民段考闖關卡</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: one card per screen, level map home; big type, one idea at a time */
+:root{
+  --bg:#f3f5f7; --card:#ffffff; --fg:#1d2430; --mute:#5f6b7a; --line:#dde3ea;
+  --ok:#1f9d63; --no:#d64545;
+  --c1:#0f8b8d; --c2:#2f6fd6; --c3:#e07a1f; --c4:#7a4fd0; --c5:#d64545; --c6:#2e9c4f; --c7:#c79a00; --c8:#3d5a80;
+  --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161c; --card:#1c222b; --fg:#e8edf3; --mute:#9aa6b4; --line:#2c3440;
+  --ok:#3ccf8a; --no:#ff7070;
+  --c1:#2bb5b7; --c2:#6a9bf0; --c3:#f39a4a; --c4:#a383ee; --c5:#ff7070; --c6:#4cc56f; --c7:#e6bb2e; --c8:#7fa0cc;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161c; --card:#1c222b; --fg:#e8edf3; --mute:#9aa6b4; --line:#2c3440;
+  --ok:#3ccf8a; --no:#ff7070;
+  --c1:#2bb5b7; --c2:#6a9bf0; --c3:#f39a4a; --c4:#a383ee; --c5:#ff7070; --c6:#4cc56f; --c7:#e6bb2e; --c8:#7fa0cc;
+  color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);margin:0}
+.wrap{max-width:520px;margin:0 auto;padding:16px;padding-block:18px 28px;min-height:100%;display:flex;flex-direction:column;gap:14px}
+h1{font-size:1.6rem;font-weight:900;margin:0;text-wrap:balance}
+.sub{color:var(--mute);font-size:.95rem;line-height:1.6;margin:0}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent,var(--c2));outline-offset:2px}
+
+/* home */
+.levels{display:flex;flex-direction:column;gap:10px}
+.lv{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:left;color:var(--fg);width:100%}
+.lv .badge{flex:none;width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:1.5rem;font-weight:900;color:#fff;background:var(--accent)}
+.lv .t{flex:1;min-width:0}
+.lv .n{font-weight:700;font-size:1.08rem}
+.lv .d{color:var(--mute);font-size:.85rem;margin-top:2px}
+.bar{height:6px;border-radius:3px;background:var(--line);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
+.done-chip{flex:none;font-size:.8rem;font-weight:700;color:var(--ok)}
+
+/* play */
+.top{display:flex;align-items:center;gap:10px}
+.back{background:none;border:1px solid var(--line);color:var(--fg);border-radius:10px;padding:8px 12px;font-size:.95rem}
+.lvname{font-weight:700;color:var(--accent);flex:1;min-width:0}
+.count{color:var(--mute);font-size:.9rem;font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:4px;flex-wrap:wrap}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--accent)}
+.dots i.cur{outline:2px solid var(--accent);outline-offset:1px}
+
+.card{background:var(--card);border-radius:22px;border:2px solid var(--accent);padding:22px 20px;min-height:340px;display:flex;flex-direction:column;gap:14px;position:relative}
+.kind{align-self:flex-start;font-size:.78rem;font-weight:700;letter-spacing:.08em;color:var(--accent);border:1.5px solid var(--accent);border-radius:999px;padding:3px 10px}
+.prompt{font-size:1.45rem;font-weight:700;line-height:1.5;text-wrap:balance}
+.tapnote{margin-top:auto;color:var(--mute);font-size:.9rem;text-align:center}
+.flip{all:unset;display:contents;cursor:pointer}
+.ans{font-size:1.9rem;font-weight:900;color:var(--accent);line-height:1.3}
+.hook{font-size:1.1rem;line-height:1.7;background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:14px;padding:12px 14px}
+.ex{font-size:.98rem;line-height:1.7;color:var(--mute)}
+.ex b{color:var(--fg)}
+.mine{font-size:.85rem;font-weight:700;color:var(--no)}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.opt{border:2px solid var(--line);background:var(--bg);color:var(--fg);border-radius:14px;padding:14px;font-size:1.12rem;font-weight:500;text-align:left}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.opt.wrong{border-color:var(--no);background:color-mix(in srgb,var(--no) 12%,transparent)}
+.verdict{font-weight:900;font-size:1.3rem}
+.verdict.ok{color:var(--ok)} .verdict.no{color:var(--no)}
+
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{border:none;border-radius:14px;padding:16px;font-size:1.05rem;font-weight:700}
+.btn.again{background:var(--card);color:var(--fg);border:2px solid var(--line)}
+.btn.got{background:var(--accent);color:#fff}
+.btn.wide{grid-column:1/-1}
+
+.finish{text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;padding-block:30px}
+.big{font-size:3.4rem;font-weight:900;color:var(--accent)}
+.reset{background:none;border:none;color:var(--mute);text-decoration:underline;font-size:.85rem;align-self:center}
+@media (prefers-reduced-motion:no-preference){.card{animation:pop .22s ease-out}@keyframes pop{from{transform:scale(.97);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+const L = [
+ {k:"控",name:"社會控制三兄弟",d:"內在／非正式外在／正式外在",c:"--c1",cards:[
+  {f:"心裡覺得「好有罪惡感」、良心不安",a:"內在控制",h:"規範已經住進心裡，自己管自己。"},
+  {f:"被大家指指點點、違反道德、被長輩念",a:"非正式外在控制",h:"有人在看你，但沒有法律強制力。"},
+  {f:"法院、強制執行、罰鍰、判刑、學校記過",a:"正式外在控制",h:"有白紙黑字＋有強制力 ＝ 正式。看到「法院、罰、刑」直接選它。",m:"第1回第1、6、15題都在考這個"},
+  {q:"立法院加重酒駕刑罰來約束酒駕，這是？",o:["內在控制","正式外在控制"],r:1,w:"刑罰有強制力，是正式外在控制。"},
+  {q:"甲請法院「強制執行」拿回贍養費，這是以道德來約束？",o:["對，靠道德","不對，靠法律強制力"],r:1,w:"強制執行靠的是法律，不是道德。"},
+  {f:"一條規範出來，先問什麼？",a:"它在管「誰」？",h:"美國 AI 規範寫「政府不得侵犯民眾權益」→ 被管的是政府，不是人民。",m:"第1回第2題"}
+ ]},
+ {k:"釋",name:"誰在解釋法律",d:"行政／立法／司法解釋",c:"--c2",cards:[
+  {f:"部會發的「函釋」「解釋令」\n（內政部、法務部、衛福部）",a:"行政機關解釋",h:"部會＝行政機關。函釋就是他們在執行法律時的解釋。",m:"第1回第22題"},
+  {f:"立法時，直接在法條裡寫好名詞的定義",a:"立法機關解釋",h:"例：《選罷法》寫明「公職人員包含村里長」。修法本身不算在「解釋疑義」。"},
+  {f:"法院判決、憲法法庭判決",a:"司法機關解釋",h:"看到「判決」「判…勝訴」→ 司法。",m:"第1回第4題"},
+  {q:"臺北高等行政法院判決卡大地布部落勝訴，這是？",o:["行政機關解釋","司法機關解釋"],r:1,w:"法院判決 → 司法機關解釋。"},
+  {f:"判決寫「參考本條文之立法意旨」",a:"目的解釋",h:"看「立法目的、意旨」＝目的解釋。\n看「當年立法紀錄」＝歷史解釋。",m:"第1回第18題"}
+ ]},
+ {k:"法",name:"法律誕生之路",d:"提案 → 三讀 → 公布",c:"--c3",cards:[
+  {f:"誰可以「提案」？",a:"行政院等機關、立委",h:"行政院提 → 政府案\n立委15人連署或黨團提 → 委員案\n人民、工會、國會助理不能提，只能遊說、請願。",m:"第3回第17題"},
+  {q:"交通部提出修法草案，這是？",o:["委員案","政府案"],r:1,w:"交通部屬於行政院 → 政府案。"},
+  {f:"程序委員會負責什麼？",a:"排議程",h:"程序委員會＝排隊的（決定誰先審）。\n常設委員會＝審內容的（逐條審查）。"},
+  {f:"一讀",a:"只念標題",h:"念完後：有爭議 → 交付委員會審查；沒爭議 → 逕付二讀。"},
+  {f:"黨團協商由誰主持？誰能組黨團？",a:"立法院長主持",h:"當選 3 席以上的政黨才能組黨團。不能說「納入所有小黨」。",m:"第1回第11、14題"},
+  {f:"二讀",a:"逐條討論",h:"要提意見、做實質討論，都在二讀。"},
+  {f:"三讀",a:"只改文字",h:"不做實質審查、不會有人踴躍提意見。",m:"第1回第23題就考這句"},
+  {q:"講稿：「歡迎委員在三讀會踴躍提供意見」對嗎？",o:["對","錯"],r:1,w:"三讀只做文字修正。提意見是二讀。"},
+  {f:"覆議",a:"行政院提",h:"覺得窒礙難行 → 經總統核可 → 送達 10 日內提出。"},
+  {f:"法律什麼時候生效？",a:"公布日起第 3 日",h:"總統公布 → 第 3 日生效。不是隔天，也不是三讀當天。"},
+  {f:"開會門檻",a:"總額 1/3 出席・過半同意",h:"是立委「總額」的 1/3，不是出席人數的 1/3。"},
+  {f:"立委任期滿，沒審完的法案？",a:"屆期不連續",h:"下屆不續審，要重新提案（預算案、人民請願案除外）。"}
+ ]},
+ {k:"用",name:"該用哪一部法",d:"從舊從新、特別法、法律保留",c:"--c4",cards:[
+  {f:"犯錯後，法律改了，用新法還是舊法？",a:"實體從舊・程序從新",h:"先比兩個日期：做壞事那天 vs 修法那天。\n修法前犯的 → 用舊法。",m:"第1回第16題"},
+  {q:"甲男 2021/12 酒駕，2022/1 修法（舊法2年以下）。他會？",o:["判 2 年 5 個月","被吊銷駕照"],r:1,w:"用舊法，最多 2 年；公布照片是新法才有。吊銷駕照修法前就有。"},
+  {f:"16 歲高中生犯罪，先用《少年事件處理法》",a:"特別法優於普通法",h:"不是「程序從新」！看到「少年、軍人」這種特定身分 → 特別法。"},
+  {f:"部會的解釋令做了母法沒授權的事",a:"違反法律保留",h:"命令不能超過法律。衛福部放寬中藥販賣 → 藥師抗議。"},
+  {f:"政府要收費、處罰，但沒有任何法規",a:"違反依法行政（法治國）",h:"沒有法規授權就不能做。新北收「美觀清潔費」要有自治條例。"},
+  {f:"人民選出民意代表來修法",a:"民主國原則",h:"主權在民，由人民或民意代表立法。"}
+ ]},
+ {k:"權",name:"公權力六原則",d:"政府做事要守的規矩",c:"--c5",cards:[
+  {f:"手段有沒有「過頭」？",a:"比例原則",h:"警察看嫌犯狀態決定要不要上銬；首次違規就罰最高額 → 違反。"},
+  {f:"有沒有走「該走的程序」？",a:"正當程序原則",h:"搜索要搜索票、強制採尿要令狀、拘禁處分程序不合法。",m:"第3回第15、22題"},
+  {f:"法條有沒有寫「清楚」？",a:"明確性原則",h:"明確寫出「公職人員包含村里長」。"},
+  {f:"政府有沒有「騙人」？",a:"誠信原則",h:"說要蓋運動中心，實際蓋嫌惡設施 → 違反。"},
+  {f:"自己得利很小、別人損失很大",a:"禁止權利濫用",h:"畸零地拆騎樓、惡意退貨、標錯價狂下單101支。",m:"第1回第5、12題"},
+  {f:"公職人員有沒有「偏袒政黨」？",a:"政治中立",h:"市長用市府資源幫自己政黨宣傳 → 違反。"},
+  {q:"檢警搜索民宅前要先拿到法院搜索票，這是？",o:["明確性原則","正當程序原則"],r:1,w:"要先經過法定程序 → 正當程序。"},
+  {q:"消費者惡意退貨，7日鑑賞期可能被排除，這是？",o:["禁止權利濫用","法治國原則"],r:0,w:"用權利去害人 → 權利濫用。"}
+ ]},
+ {k:"人",name:"人權地圖",d:"自由／受益／參政／平等／概括",c:"--c6",cards:[
+  {f:"人身、言論出版、集會遊行、結社",a:"自由權",h:"組工會＝結社；上街抗議＝集會遊行。\n提審保障的是「人身自由」。"},
+  {f:"工作、生存（「飯碗」）",a:"受益權（社會權）",h:"丟紙碗 → 工作權、生存權，不是言論自由。補助產業勞工安定 → 社會權。"},
+  {f:"參政權只有哪幾種？",a:"選・罷・創・複＋應考試服公職",h:"勞工代表參與談判，不是參政權！",m:"第3回第3題"},
+  {f:"憲法沒寫，但也受保障的權利",a:"概括基本權（第 22 條）",h:"隱私權、肖像權。被生物辨識監控 → 隱私權。"},
+  {f:"人權可以被限制嗎？",a:"可以（第 23 條）",h:"為公共利益，用法律限制。「不能限制」的選項都是錯的。"},
+  {f:"「法律、命令都不能牴觸憲法」",a:"憲法的最高性",h:"正當性＝權力來自人民授予（社會契約論），不要搞混。"},
+  {q:"居家檢疫被認為是拘禁，可以聲請提審，保障的是？",o:["人身自由","居住自由"],r:0,w:"憲法第 8 條：人民身體之自由。"}
+ ]},
+ {k:"平",name:"平等這件事",d:"形式平等 vs 實質平等",c:"--c7",cards:[
+  {f:"大家「一模一樣」對待",a:"形式平等",h:"一人一票、票票等值。"},
+  {f:"看見差異，給弱勢「多一點」",a:"實質平等",h:"生理假、原住民保障名額、婦女保障名額、身障定額進用、無障礙設施、偏鄉數位資源。"},
+  {q:"不論性別年齡族群，每一票效力相同，這是？",o:["形式平等","實質平等"],r:0,w:"一律相同對待 → 形式平等。"},
+  {f:"差別待遇一定違憲嗎？",a:"不一定",h:"有重要公益＋符合比例原則 → 合理差別待遇。\n消防身高標準違憲，是因為機關「拿不出證據」證明有關聯。"}
+ ]},
+ {k:"技",name:"憲法法庭＋讀題招",d:"最後一關，送分技巧",c:"--c8",cards:[
+  {f:"憲法法庭四件事",a:"不告不理・公開審理・只發判決・只有大法官",h:"不會主動釋憲；不再用「解釋文」；普通法官不能參加；人民窮盡救濟後也能聲請。"},
+  {f:"社會價值觀改變了，然後呢？",a:"法律跟著改（規範變遷）",h:"大麻除罪、塑膠袋限用、跨性別免手術、緩刑要跟上社會。"},
+  {f:"選項本身是對的，但跟題目無關？",a:"還是錯",h:"選「最能回應題幹」的那個。題幹最後一句常是線索。",m:"第1回第5題"},
+  {f:"選項出現「所有、完全、一定、不能」",a:"先懷疑它",h:"「納入所有小黨」「人權已經完全落實」都是陷阱。"},
+  {f:"題幹出現日期",a:"先比日期再作答",h:"行為日 vs 修法日，決定新法舊法。"}
+ ]}
+];
+
+const KEY="civics-cards-v1";
+let st={};
+try{st=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){st={}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const app=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])).replace(/\n/g,"<br>");
+const known=i=>(st[i]||[]).length;
+
+function home(){
+  document.documentElement.style.removeProperty("--accent");
+  const total=L.reduce((s,l)=>s+l.cards.length,0), got=L.reduce((s,l,i)=>s+known(i),0);
+  app.innerHTML=`<h1>公民段考闖關卡</h1>
+  <p class="sub">第 1、2 章，兩份考卷的考點全在這裡。一次只看一張，點一下翻面。<br>已經記住 ${got} / ${total} 張。</p>
+  <div class="levels">${L.map((l,i)=>{
+    const n=known(i),p=Math.round(n/l.cards.length*100);
+    return `<button class="lv" style="--accent:var(${l.c})" data-i="${i}">
+      <span class="badge">${l.k}</span>
+      <span class="t"><div class="n">${i+1}. ${l.name}</div><div class="d">${l.d}</div>
+      <div class="bar"><i style="width:${p}%"></i></div></span>
+      ${n===l.cards.length?'<span class="done-chip">過關</span>':`<span class="count">${n}/${l.cards.length}</span>`}
+    </button>`}).join("")}</div>
+  <button class="reset" id="rs">清除進度</button>`;
+  app.querySelectorAll(".lv").forEach(b=>b.onclick=()=>play(+b.dataset.i));
+  document.getElementById("rs").onclick=()=>{st={};save();home()};
+}
+
+let lvl,queue,pos,flipped,picked;
+function play(i){
+  lvl=i; const done=new Set(st[i]||[]);
+  queue=L[i].cards.map((_,j)=>j).filter(j=>!done.has(j));
+  if(!queue.length) queue=L[i].cards.map((_,j)=>j);
+  pos=0; document.documentElement.style.setProperty("--accent",`var(${L[i].c})`); show();
+}
+function mark(j){st[lvl]=st[lvl]||[]; if(!st[lvl].includes(j)) st[lvl].push(j); save();}
+function next(again){
+  const j=queue[pos];
+  if(again) queue.push(j); else mark(j);
+  pos++; pos<queue.length?show():finish();
+}
+function show(){
+  flipped=false; picked=null; render();
+}
+function render(){
+  const l=L[lvl], j=queue[pos], c=l.cards[j], done=new Set(st[lvl]||[]);
+  const dots=l.cards.map((_,k)=>`<i class="${done.has(k)?'on':''} ${k===j?'cur':''}"></i>`).join("");
+  let body="";
+  if(c.q){
+    body=`<span class="kind">快問快答</span><div class="prompt">${esc(c.q)}</div>
+    <div class="opts">${c.o.map((o,k)=>{
+      let cls=""; if(picked!==null){ if(k===c.r) cls="right"; else if(k===picked) cls="wrong"; }
+      return `<button class="opt ${cls}" data-k="${k}" ${picked!==null?"disabled":""}>${esc(o)}</button>`}).join("")}</div>
+    ${picked!==null?`<div class="verdict ${picked===c.r?'ok':'no'}">${picked===c.r?'答對！':'差一點'}</div><div class="hook">${esc(c.w)}</div>`:""}`;
+  }else if(!flipped){
+    body=`<button class="flip" id="fl"><span class="kind">看到這個…</span><div class="prompt">${esc(c.f)}</div><div class="tapnote">點卡片翻面</div></button>`;
+  }else{
+    body=`<span class="kind">就想到</span><div class="ex">${esc(c.f)}</div><div class="ans">${esc(c.a)}</div><div class="hook">${esc(c.h)}</div>${c.m?`<div class="mine">考過：${esc(c.m)}</div>`:""}`;
+  }
+  let acts="";
+  if(c.q){ acts=picked===null?"":(picked===c.r?`<button class="btn got wide" id="go">下一張</button>`:`<button class="btn again wide" id="ag">等一下再考我一次</button>`); }
+  else if(flipped){ acts=`<button class="btn again" id="ag">再看一次</button><button class="btn got" id="go">記住了</button>`; }
+  app.innerHTML=`<div class="top"><button class="back" id="bk">← 關卡</button><span class="lvname">${l.name}</span><span class="count">${pos+1}/${queue.length}</span></div>
+  <div class="dots">${dots}</div>
+  <div class="card" id="cd">${body}</div>
+  <div class="actions">${acts}</div>`;
+  document.getElementById("bk").onclick=home;
+  const fl=document.getElementById("fl"); if(fl){document.getElementById("cd").onclick=()=>{flipped=true;render()}}
+  app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{picked=+b.dataset.k;render()});
+  const go=document.getElementById("go"), ag=document.getElementById("ag");
+  if(go) go.onclick=()=>next(false); if(ag) ag.onclick=()=>next(true);
+}
+function finish(){
+  const l=L[lvl], nx=lvl+1<L.length?lvl+1:null;
+  app.innerHTML=`<div class="finish"><div class="big">過關</div><h1>${l.name}</h1>
+  <p class="sub">這關 ${l.cards.length} 張都記住了。休息一下也可以。</p>
+  <div class="actions" style="width:100%">${nx!==null?`<button class="btn got wide" id="nx">下一關：${L[nx].name}</button>`:""}<button class="btn again wide" id="hm">回到關卡</button></div></div>`;
+  document.getElementById("hm").onclick=home;
+  const n=document.getElementById("nx"); if(n) n.onclick=()=>play(nx);
+}
+home();
+</script>
+
+</body>
+</html>
